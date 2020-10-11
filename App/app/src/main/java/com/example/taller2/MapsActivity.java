@@ -69,17 +69,23 @@ import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, RoutingListener, GoogleApiClient.OnConnectionFailedListener {
 
-    private GoogleMap mMap;
-    private EditText findLocation;
-    private Geocoder mGeocoder;
     private static final int ACCESS_LOCATION_ID = 1;
     private static final int REQUEST_CHECK_SETTINGS = 2;
+    private static final double lowerLat = 1.396967;
+    private static final double lowerLong = -78.903968;
+    private static final double upperLat = 11.983639;
+    private static final double upperLong = -71.869905;
+
+    private GoogleMap mMap;
+    private EditText findLocation;
+    private SupportMapFragment mapFragment;
     private LatLng myLocation;
     private LatLng otherLocation;
+    private Geocoder mGeocoder;
+
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
     private LocationRequest mLocationRequest;
-    private SupportMapFragment mapFragment;
 
     private List<Polyline> route = null;
 
@@ -139,7 +145,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     String address = findLocation.getText().toString();
                     if (!address.isEmpty()) {
                         try {
-                            List<Address> addresses = mGeocoder.getFromLocationName(address, 2);
+                            List<Address> addresses = mGeocoder.getFromLocationName(address, 2, lowerLat, lowerLong, upperLat, upperLong);
                             if (addresses != null && !addresses.isEmpty()) {
                                 Address res = addresses.get(0);
                                 LatLng pos = new LatLng(res.getLatitude(), res.getLongitude());
@@ -313,11 +319,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private double distance(double myLat, double myLong, double otherLat, double otherLong){
         double latDistance = Math.toRadians(myLat - otherLat);
         double longDistance = Math.toRadians(myLong - otherLong);
-        double a = Math.sin(latDistance / 2) * Math.sin(longDistance / 2) + Math.cos(Math.toRadians(myLat)) *
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) + Math.cos(Math.toRadians(myLat)) *
                    Math.cos(Math.toRadians(otherLat)) * Math.sin(longDistance / 2) * Math.sin(longDistance / 2);
+
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double res = 6371.01 * c;
-        return Math.round(res * 100) / 100;
+
+        return Math.round(res * 100.0) / 100.0;
     }
 
     public void showRoute(double myLat, double myLong, double otherLat, double otherLong){
