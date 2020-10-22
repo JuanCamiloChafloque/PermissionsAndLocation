@@ -7,10 +7,12 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.graphics.Camera;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -104,9 +106,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        solicitPermission(this, Manifest.permission.ACCESS_FINE_LOCATION, "Permission to Access Location", ACCESS_LOCATION_ID);
-        usePermission();
-
+        mLocationRequest = createLocationRequest();
         mLocationCallback = new LocationCallback(){
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -178,6 +178,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        solicitPermission(this, Manifest.permission.ACCESS_FINE_LOCATION, "Permission to Access Location", ACCESS_LOCATION_ID);
+        usePermission();
 
     }
 
@@ -200,6 +202,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case REQUEST_CHECK_SETTINGS: {
+                if (resultCode == RESULT_OK) {
+                    startLocationUpdates();
+                } else {
+                    Toast.makeText(this,
+                            "Can´t access location",
+                            Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+        }
+    }
+
     private void usePermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mFusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -213,7 +232,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 googleMap.clear();
                                 googleMap.addMarker(new MarkerOptions().position(myLocation).title("My Location").snippet("My Home").alpha(0.8f)
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 13));
+                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
                             }
                         });
                     }
@@ -379,8 +398,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         route = new ArrayList<>();
         for(int i = 0; i < r.size(); i++){
             if(i == index){
-                pOptions.color(R.color.routeColor);
-                pOptions.width(16);
+                pOptions.color(Color.rgb(218, 0, 255));
+                pOptions.width(12);
                 pOptions.addAll(r.get(index).getPoints());
                 Polyline polyline = mMap.addPolyline(pOptions);
                 polyStart = polyline.getPoints().get(0);
@@ -390,7 +409,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(polyStart, 13));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(polyStart, 15));
 
     }
 
